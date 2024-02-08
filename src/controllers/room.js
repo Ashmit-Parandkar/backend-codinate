@@ -22,6 +22,7 @@ exports.createRoom = async (req, res) => {
     const savedRoom = await newRoom.save();
     res.cookie('userId', userId);
     res.status(200).json(savedRoom);
+    res.status(200).json({ room: savedRoom, redirectUrl: '/code' });
     console.log(savedRoom);
     console.log(req.cookies.userId);
   } catch (err) {
@@ -96,6 +97,7 @@ exports.getRoomsOfUser = async (req, res) => {
 exports.joinRoom = async (req, res) => {
     const { userName, roomId, password } = req.body;
     let userId = req.cookies.userId;
+    console.log("Joining room...")
   
     if (!userId) {
       // If userId is not present in the cookie, create a new one
@@ -105,6 +107,7 @@ exports.joinRoom = async (req, res) => {
     if (!userName || !roomId || !password) {
       res.status(422).json({ error: "Please add all fields" });
     } else {
+      console.log("Every value given, roomid - ", roomId)
       try {
         const savedRoom = await RoomModel.findOne({ roomId: roomId });
   
