@@ -26,8 +26,12 @@ wss.on('connection', (ws) => {
   ws.send(currentCode);
 
   
-  ws.on("message", (message) => {
-    console.log(`Received message: ${message}`);
+ws.on("message", (message) => {
+  console.log(`Received message: ${message}, ${message.data}`);
+  if (message.data === "getInitialCode") {
+    // If the message is a request for initial code, send the current code
+    ws.send(currentCode);
+  } else {
     // Update the current code with the received message
     currentCode = message;
     // Broadcast the updated code to all connected clients
@@ -37,7 +41,9 @@ wss.on('connection', (ws) => {
         console.log(currentCode)
       }
     });
-  });
+  }
+});
+
   
   ws.on('close', () => {
     console.log('WebSocket client disconnected');

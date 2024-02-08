@@ -21,7 +21,6 @@ exports.createRoom = async (req, res) => {
   try {
     const savedRoom = await newRoom.save();
     res.cookie('userId', userId);
-    res.status(200).json(savedRoom);
     res.status(200).json({ room: savedRoom, redirectUrl: '/code' });
     console.log(savedRoom);
     console.log(req.cookies.userId);
@@ -42,57 +41,6 @@ exports.getRoomsOfUser = async (req, res) => {
     res.status(500).json(e);
   }
 };
-////////////////
-// exports.joinRoom = async (req, res) => {
-//   const { userName, roomId, user, password } = req.body;
-
-//   if (!userName || !roomId || !password) {
-//     res.status(422).json({ error: "please add all field" });
-//   } 
-//   else {
-//     RoomModel.findOne({ roomId: roomId })
-//       .then(async (savedRoom) => {
-//         if (!savedRoom) {
-//           res.status(422).json({ error: "Invalid Room Id or password" });
-//         } else if (savedRoom?.password === password) {
-//           if (!user) {
-//             try {
-//               const newUser = { userId: createId(), name: userName };
-//               const join_room = await RoomModel.updateOne(
-//                 { _id: savedRoom._id },
-//                 { $push: { members: newUser } },
-//                 { new: true }
-//               );
-
-//               res.status(200).json({
-//                 UserId: newUser.userId,
-//                 UserName: newUser.name,
-//                 RoomId: roomId,
-//                 RoomName: savedRoom.roomName,
-//               });
-//               console.log(join_room);
-//             } catch (error) {
-//               res.status(422).json({ error: error.message });
-//             }
-//           } 
-//           else {
-//             if (user.RoomId == roomId && user.UserName != userName) {
-//               res.status(400).json({
-//                 error: `you have to login with this user name ${user.UserName}`,
-//               });
-//             } else {
-//               res.status(200).json({ msg: `joined room` });
-//             }
-//           }
-//         } else {
-//           res.status(422).json({ error: "Invalid room id or password" });
-//         }
-//       })
-//       .catch((err) => {
-//         console.log(err);
-//       });
-//   }
-// };
 
 exports.joinRoom = async (req, res) => {
     const { userName, roomId, password } = req.body;
