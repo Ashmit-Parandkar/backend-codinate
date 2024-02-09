@@ -6,9 +6,6 @@ const messageSchema = new Schema(
       type: String,
       require: true,
     },
-    senderId: {
-      type: String,
-    },
     senderName: {
       type: String,
     },

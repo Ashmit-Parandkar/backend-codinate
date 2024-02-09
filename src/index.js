@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const {createServer} = require('http');
 const { Server } = require('socket.io');
+const Room = require('./models/room')
 
 const app = express();
 
@@ -27,25 +28,72 @@ const io = new Server(server,{
   },
  });
 
+const getInitialCode = async(roomId) =>{
+  const currRoom = await Room.findOne({roomId: roomId})
+  console.log("Checking... ",currRoom.code)
+  return currRoom.code;
+}
+
 // Socket.io server handling
 io.on('connection', (socket) => {
   console.log('Socket.io client connected');
-
+  // socket.on('initialData', getInitialCode())
+  
   // Send current code to the newly connected client
-  socket.emit('currentCode', currentCode);
+  //socket.emit('currentCode', currentCode);
 
-  socket.on('message', (message) => {
-    console.log(`Received message: ${message}, ${message.data}`);
-    if (message.data === "getInitialCode") {
-      // If the message is a request for initial code, send the current code
-      socket.emit('currentCode', currentCode);
-    } else {
-      // Update the current code with the received message
+  
+
+
+  socket.on("addProjectRoom", (id) => {
+    socket.join(id + "project");
+    console.log(`he added in the room ${id}+"project"`);
+
+  });
+  
+  socket.on('message', async (message) => {
+    console.log(`Received message: ${message.roomId}, ${message.newCode}`);
+      
+      if(message.newCode === "") {
+        const m0 = await getInitialCode(message.roomId);
+        console.log("Checking22.... " , m0)
+        socket.emit('currentCode', await getInitialCode(message.roomId))
+      }
+      else{
       currentCode = message;
-      // Broadcast the updated code to all connected clients
-      io.emit('currentCode', currentCode);
-      console.log(currentCode);
+
+      // Extract roomId from the message
+      const { roomId, newCode } = message;
+      console.log(roomId, newCode);
+
+      // Update the code in the respective room in the database
+      try {
+        const updatedRoom = await Room.findOneAndUpdate(
+          { roomId },
+          { code: newCode },
+          { new: true } // To return the updated document
+        );
+        // Broadcast the updated code to all connected clients in the room
+        console.log(`Emitting currentCode event for room ${roomId}`);
+
+        // io.to(roomId).emit('currentCode', updatedRoom.code);
+        socket.broadcast.to(roomId + "project").emit("currentCode", updatedRoom.code);
+
+        console.log(`Code updated for room ${roomId}, Updated Code : ${updatedRoom.code}`);
+      } catch (error) {
+        console.error(`Error updating code for room ${roomId}:`, error);
+      }
     }
+  });
+
+  socket.on("chatMessage", ({ chatText, roomId, senderName, formattedTime }) => {
+    
+    socket.broadcast.to(roomId + "chat").emit("sendChatMessage", { chatText, roomId, senderName, formattedTime });
+    console.log(chatText, roomId);
+  });
+  socket.on("addChatRoom", (roomId) => {
+    socket.join(roomId + "chat");
+    console.log(`he added in the room ${roomId}+"chat"`);
   });
 
   socket.on('disconnect', () => {

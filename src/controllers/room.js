@@ -81,6 +81,7 @@ exports.joinRoom = async (req, res) => {
               UserName: userName,
               RoomId: roomId,
               RoomName: savedRoom.roomName,
+              password: savedRoom.password,
               Message: 'User entered the room for the first time.',
             });
           } else {
@@ -90,6 +91,7 @@ exports.joinRoom = async (req, res) => {
               UserName: userName,
               RoomId: roomId,
               RoomName: savedRoom.roomName,
+              password: savedRoom.password,
               Message: 'User has already entered the room.',
             });
           }

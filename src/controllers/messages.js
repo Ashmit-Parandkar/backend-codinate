@@ -3,7 +3,7 @@ const MessageModel = require("../models/Message");
 
 exports.createNewMessage = async (req, res) => {
 
-    const { roomId, senderId, senderName, text } = req.body;
+    const { roomId, senderName, text } = req.body;
 
   // Validate that roomId and text are present
   if (!roomId || !text) {
@@ -12,7 +12,6 @@ exports.createNewMessage = async (req, res) => {
 
   const newMessage = new MessageModel({
     roomId,
-    senderId,
     senderName,
     text,
   });
