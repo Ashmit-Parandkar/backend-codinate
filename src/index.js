@@ -7,11 +7,18 @@ const {createServer} = require('http');
 const { Server } = require('socket.io');
 const Room = require('./models/room')
 
+const {runCode} = require("./run-code");
+const {supportedLanguages} = require("./run-code/instructions");
+const {info} = require("./run-code/info");
+const bodyParser = require("body-parser");
+
 const app = express();
 
 app.use(cors());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.json());
 
 let currentCode = "";
@@ -120,6 +127,39 @@ const messageRoutes = require("./routes/messages");
 
 app.use("/api", roomRoutes);
 app.use("/api", messageRoutes);
+
+const sendResponse = (res, statusCode, body) => {
+  const timeStamp = Date.now()
+
+  res.status(statusCode).send({
+      timeStamp,
+      status: statusCode,
+      ...body
+  })
+}
+
+app.post("/", async (req, res) => {
+  console.log("Req  : ", req.body)
+  try {
+      const output = await runCode(req.body)
+      sendResponse(res, 200, output)
+  } catch (err) {
+      sendResponse(res, err?.status || 500, err)
+  }
+})
+
+app.get('/list', async (req, res) => {
+  const body = []
+
+  for(const language of supportedLanguages) {
+      body.push({
+          language,
+          info: await info(language),
+      })
+  }
+
+  sendResponse(res, 200, {supportedLanguages: body})
+})
 
 server.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
